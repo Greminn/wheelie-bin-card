@@ -8,8 +8,9 @@ integration (`mampfes/hacs_waste_collection_schedule`). It shows the next collec
 as a title + summary line and a row of bin "chips", each with a ✓ or ✗ badge for
 whether that bin goes out next time.
 
-> Next Bin Collection
-> **Recycling & Glass this Friday** &nbsp;&nbsp; 🗑️✗ 🍂✗ ♻️✓ 🍾✓
+![Wheelie Bin Card — horizontal and vertical layouts](assets/screenshot.png)
+
+*Horizontal (default) and vertical layouts, `chip_style: faded`.*
 
 ## Requirements
 

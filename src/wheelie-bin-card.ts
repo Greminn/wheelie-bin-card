@@ -8,7 +8,7 @@ import { ActionConfig, HomeAssistant, WheelieBinCardConfig, BinDefinition, Resol
 import { effectiveBins, KNOWN_COLORS } from './defaults'
 import './editor'
 
-const CARD_VERSION = '0.3.0'
+const CARD_VERSION = '0.3.1'
 
 console.info(
   `%c WHEELIE-BIN-CARD %c v${CARD_VERSION} `,
@@ -207,7 +207,7 @@ export class WheelieBinCard extends LitElement {
           ${this.config.show_badges === false
             ? nothing
             : html`<div class="badge">
-                <ha-icon .icon=${bin.active ? 'mdi:check-bold' : 'mdi:close-thick'}></ha-icon>
+                <ha-icon .icon=${bin.active ? 'mdi:check' : 'mdi:close'}></ha-icon>
               </div>`}
         </div>
         ${this.config.show_labels ? html`<div class="label">${bin.label}</div>` : nothing}

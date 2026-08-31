@@ -130,13 +130,13 @@ export default css`
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--bcc-badge-inactive, rgba(120, 120, 120, 0.95));
+    background: var(--bcc-badge-inactive, #9aa0a6);
   }
 
   .badge ha-icon {
-    --mdc-icon-size: calc(var(--bcc-badge-size) * 0.84);
+    --mdc-icon-size: calc(var(--bcc-badge-size) * 0.92);
     color: #fff;
-    filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.35));
+    --icon-primary-color: #fff;
   }
 
   .chip.active .badge {
