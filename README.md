@@ -12,7 +12,7 @@ integration (`mampfes/hacs_waste_collection_schedule`). It shows the next collec
 as a title + summary line and a row of bin "chips", each with a ✓ or ✗ badge for
 whether that bin goes out next time.
 
-![Wheelie Bin Card — horizontal and vertical layouts](assets/screenshot.png)
+![Wheelie Bun (Bin) Card — horizontal and vertical layouts](assets/screenshot.png)
 
 *Horizontal (default) and vertical layouts, `chip_style: faded`.*
 
@@ -38,7 +38,7 @@ later.
 
 1. HACS → ⋮ → **Custom repositories** → add
    `https://github.com/Greminn/wheelie-bin-card`, category **Dashboard**.
-2. Install **Wheelie Bin Card**.
+2. Install **Wheelie Bun (Bin) Card**.
 3. HACS adds the resource automatically. If not, add it manually:
    `/hacsfiles/wheelie-bin-card/wheelie-bin-card.js` (type: `module`).
 
