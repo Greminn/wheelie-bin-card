@@ -1,0 +1,54 @@
+name: Bug report
+description: Something isn't working as expected
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you see, and what did you expect instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+
+  - type: textarea
+    id: card-config
+    attributes:
+      label: Card configuration (YAML)
+      render: yaml
+    validations:
+      required: true
+
+  - type: textarea
+    id: sensor
+    attributes:
+      label: Sensor state & attributes
+      description: >
+        The `entity` you pointed the card at — its state and the date-keyed
+        attributes (Developer Tools → States). Redact anything you'd rather not share.
+      render: yaml
+
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Wheelie Bun (Bin) Card version + Home Assistant version
+      placeholder: "card 0.3.2, HA 2026.9.1"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and this isn't a duplicate
+          required: true
+        - label: I'm on the latest release of the card
+          required: true
