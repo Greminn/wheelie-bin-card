@@ -1,12 +1,14 @@
 import { LitElement, html, nothing, PropertyValues, TemplateResult } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
 import { classMap } from 'lit/directives/class-map.js'
+import { styleMap } from 'lit/directives/style-map.js'
 
 import styles from './styles'
-import { HomeAssistant, WheelieBinCardConfig, BinDefinition, ResolvedBin } from './types'
+import { ActionConfig, HomeAssistant, WheelieBinCardConfig, BinDefinition, ResolvedBin } from './types'
+import { effectiveBins, KNOWN_COLORS } from './defaults'
 import './editor'
 
-const CARD_VERSION = '0.1.0'
+const CARD_VERSION = '0.2.0'
 
 console.info(
   `%c WHEELIE-BIN-CARD %c v${CARD_VERSION} `,
@@ -24,23 +26,6 @@ w.customCards.push({
   documentationURL: 'https://github.com/Greminn/wheelie-bin-card'
 })
 
-const DEFAULT_BINS: BinDefinition[] = [
-  { slug: 'rubbish', label: 'Rubbish', icon: 'mdi:trash-can', color: 'red' },
-  { slug: 'garden', label: 'Garden waste', icon: 'mdi:leaf', color: 'green' },
-  { slug: 'recycling', label: 'Recycling', icon: 'mdi:recycle', color: 'amber' },
-  { slug: 'glass', label: 'Glass', icon: 'mdi:bottle-wine', color: 'blue' }
-]
-
-const FOOD_SCRAPS_BIN: BinDefinition = {
-  slug: 'food', label: 'Food scraps', icon: 'mdi:food-apple', color: 'light-green'
-}
-
-const KNOWN_COLORS = new Set([
-  'primary', 'accent', 'disabled', 'red', 'pink', 'purple', 'deep-purple', 'indigo',
-  'blue', 'light-blue', 'cyan', 'teal', 'green', 'light-green', 'lime', 'yellow',
-  'amber', 'orange', 'deep-orange', 'brown', 'grey', 'blue-grey', 'black', 'white'
-])
-
 const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/
 
 @customElement('wheelie-bin-card')
@@ -49,6 +34,10 @@ export class WheelieBinCard extends LitElement {
 
   @property({ attribute: false }) public hass!: HomeAssistant
   @state() private config!: WheelieBinCardConfig
+
+  private holdTimer?: number
+  private clickTimer?: number
+  private held = false
 
   public static getConfigElement (): HTMLElement {
     return document.createElement('wheelie-bin-card-editor')
@@ -71,19 +60,28 @@ export class WheelieBinCard extends LitElement {
   }
 
   public getGridOptions (): Record<string, unknown> {
-    return { rows: 1, min_rows: 1, columns: 12, min_columns: 6 }
+    // let the card grow with its content (esp. the vertical layout) instead of
+    // being pinned to a fixed row height and overflowing its background
+    return { rows: 'auto', min_rows: 1, columns: 12, min_columns: 6 }
+  }
+
+  public disconnectedCallback (): void {
+    super.disconnectedCallback()
+    clearTimeout(this.holdTimer)
+    clearTimeout(this.clickTimer)
   }
 
   protected shouldUpdate (changed: PropertyValues): boolean {
+    if (!this.config) return false
     if (changed.has('config')) return true
     const oldHass = changed.get('hass') as HomeAssistant | undefined
-    if (!oldHass || !this.config) return true
-    return oldHass.states[this.config.entity] !== this.hass.states[this.config.entity]
+    if (!oldHass) return true
+    return oldHass.states[this.config.entity] !== this.hass.states[this.config.entity] ||
+      oldHass.locale?.language !== this.hass.locale?.language
   }
 
   private get bins (): BinDefinition[] {
-    if (this.config.bins?.length) return this.config.bins
-    return this.config.show_food_scraps ? [...DEFAULT_BINS, FOOD_SCRAPS_BIN] : DEFAULT_BINS
+    return effectiveBins(this.config)
   }
 
   /** the earliest date-keyed attribute that is today or later (else the earliest of all) */
@@ -139,41 +137,44 @@ export class WheelieBinCard extends LitElement {
     if (!this.config || !this.hass) return html``
     const stateObj = this.hass.states[this.config.entity]
     const title = this.config.title ?? 'Next Bin Collection'
+    const vertical = this.config.layout === 'vertical'
+    const interactive = this.config.tap_action?.action !== 'none'
+
+    const cardStyle = styleMap({
+      '--bcc-chip-size': sizePx(this.config.chip_size),
+      '--bcc-icon-size': sizePx(this.config.icon_size),
+      '--bcc-badge-size': sizePx(this.config.badge_size),
+      '--bcc-chip-gap': sizePx(this.config.chip_gap)
+    })
 
     if (!stateObj) {
-      return html`<ha-card><div class="error">Entity not found: ${this.config.entity}</div></ha-card>`
+      return html`<ha-card style=${cardStyle}><div class="error">Entity not found: ${this.config.entity}</div></ha-card>`
     }
 
     const next = this.nextCollection()
-    const clickable = this.config.tap_action?.action !== 'none'
-
-    if (!next) {
-      return html`<ha-card>
-        <div class="wrap">
-          <div class="text">
-            <div class="title">${title}</div>
-            <div class="summary">No upcoming collection data</div>
-          </div>
-        </div>
-      </ha-card>`
-    }
-
-    const bins = this.resolveBins(next.text)
+    const summary = next
+      ? this.summaryLine(this.resolveBins(next.text), next.date)
+      : 'No upcoming collection data'
+    const bins = next ? this.resolveBins(next.text) : []
     const shown = this.config.hide_inactive ? bins.filter((b) => b.active) : bins
 
     return html`
       <ha-card
-        class=${classMap({ clickable })}
-        @click=${clickable ? this._handleClick : undefined}
+        class=${classMap({ clickable: interactive })}
+        style=${cardStyle}
+        @pointerdown=${interactive ? this._onPointerDown : undefined}
+        @pointerup=${interactive ? this._onPointerUp : undefined}
+        @pointercancel=${interactive ? this._onPointerCancel : undefined}
+        @click=${interactive ? this._onClick : undefined}
       >
-        <div class="wrap">
+        <div class=${classMap({ wrap: true, vertical })}>
           <div class="text">
             <div class="title">${title}</div>
-            <div class="summary">${this.summaryLine(bins, next.date)}</div>
+            <div class="summary">${summary}</div>
           </div>
-          <div class="chips">
-            ${shown.map((bin) => this.renderChip(bin))}
-          </div>
+          ${shown.length
+            ? html`<div class="chips">${shown.map((bin) => this.renderChip(bin))}</div>`
+            : nothing}
         </div>
       </ha-card>
     `
@@ -189,20 +190,60 @@ export class WheelieBinCard extends LitElement {
       >
         <div class="disc">
           <ha-icon .icon=${bin.icon}></ha-icon>
-          <div class="badge">
-            <ha-icon .icon=${bin.active ? 'mdi:check-bold' : 'mdi:close-thick'}></ha-icon>
-          </div>
+          ${this.config.show_badges === false
+            ? nothing
+            : html`<div class="badge">
+                <ha-icon .icon=${bin.active ? 'mdi:check-bold' : 'mdi:close-thick'}></ha-icon>
+              </div>`}
         </div>
         ${this.config.show_labels ? html`<div class="label">${bin.label}</div>` : nothing}
       </div>
     `
   }
 
-  private _handleClick = (): void => {
-    const a = this.config.tap_action ?? { action: 'more-info' }
+  private _onPointerDown = (): void => {
+    this.held = false
+    clearTimeout(this.holdTimer)
+    this.holdTimer = window.setTimeout(() => {
+      this.held = true
+      this._runAction(this.config.hold_action)
+    }, 500)
+  }
+
+  private _onPointerUp = (): void => {
+    clearTimeout(this.holdTimer)
+  }
+
+  private _onPointerCancel = (): void => {
+    clearTimeout(this.holdTimer)
+    this.held = false
+  }
+
+  private _onClick = (): void => {
+    if (this.held) {
+      this.held = false
+      return
+    }
+    const dbl = this.config.double_tap_action
+    if (dbl && dbl.action !== 'none') {
+      if (this.clickTimer) {
+        clearTimeout(this.clickTimer)
+        this.clickTimer = undefined
+        this._runAction(dbl)
+      } else {
+        this.clickTimer = window.setTimeout(() => {
+          this.clickTimer = undefined
+          this._runAction(this.config.tap_action ?? { action: 'more-info' })
+        }, 250)
+      }
+      return
+    }
+    this._runAction(this.config.tap_action ?? { action: 'more-info' })
+  }
+
+  private _runAction (a?: ActionConfig): void {
+    if (!a || a.action === 'none') return
     switch (a.action) {
-      case 'none':
-        return
       case 'toggle':
         this.hass.callService('homeassistant', 'toggle', { entity_id: this.config.entity })
         return
@@ -223,6 +264,7 @@ export class WheelieBinCard extends LitElement {
         this.hass.callService(domain, service, a.data ?? a.service_data, a.target)
         return
       }
+      case 'more-info':
       default:
         this.dispatchEvent(new CustomEvent('hass-more-info', {
           detail: { entityId: this.config.entity },
@@ -237,8 +279,14 @@ function slugify (s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 }
 
+function sizePx (v?: string | number): string | undefined {
+  if (v === undefined || v === null || v === '') return undefined
+  const s = String(v).trim()
+  return /^-?\d+(\.\d+)?$/.test(s) ? `${s}px` : s
+}
+
 function resolveColor (color?: string): string {
-  if (!color) return 'var(--bcc-chip-bg, rgba(150, 150, 150, 0.16))'
+  if (!color || color === 'state') return 'var(--bcc-chip-bg)'
   return KNOWN_COLORS.has(color) ? `var(--${color}-color)` : color
 }
 

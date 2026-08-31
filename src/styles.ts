@@ -1,11 +1,22 @@
 import { css } from 'lit'
 
 export default css`
+  :host {
+    --bcc-chip-size: 44px;
+    --bcc-icon-size: 24px;
+    --bcc-chip-gap: 12px;
+    --bcc-chip-bg: rgba(150, 150, 150, 0.16);
+    --bcc-badge-size: max(15px, calc(var(--bcc-chip-size) * 0.4));
+  }
+
   ha-card {
     display: block;
     padding: 12px 16px;
-    height: 100%;
     box-sizing: border-box;
+  }
+
+  ha-card.clickable {
+    cursor: pointer;
   }
 
   .wrap {
@@ -13,13 +24,23 @@ export default css`
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    height: 100%;
-    flex-wrap: wrap;
+  }
+
+  .wrap.vertical {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
   }
 
   .text {
     min-width: 0;
     flex: 1 1 auto;
+  }
+
+  .wrap.vertical .text {
+    flex: 0 0 auto;
+    text-align: center;
   }
 
   .title {
@@ -38,8 +59,17 @@ export default css`
 
   .chips {
     display: flex;
-    align-items: center;
-    gap: 12px;
+    align-items: flex-start;
+    gap: var(--bcc-chip-gap);
+    flex: 0 1 auto;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    /* room so the last chip's badge is never clipped by the card edge */
+    padding: 3px 3px 0 0;
+  }
+
+  .wrap.vertical .chips {
+    justify-content: center;
     flex: 0 0 auto;
   }
 
@@ -53,18 +83,18 @@ export default css`
 
   .disc {
     position: relative;
-    width: var(--bcc-chip-size, 46px);
-    height: var(--bcc-chip-size, 46px);
+    width: var(--bcc-chip-size);
+    height: var(--bcc-chip-size);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--bcc-chip-bg, rgba(150, 150, 150, 0.16));
+    background: var(--bcc-chip-bg);
     transition: background 0.2s ease;
   }
 
   .disc ha-icon {
-    --mdc-icon-size: 24px;
+    --mdc-icon-size: var(--bcc-icon-size);
     color: var(--secondary-text-color);
     opacity: 0.55;
   }
@@ -80,10 +110,10 @@ export default css`
 
   .badge {
     position: absolute;
-    top: -3px;
-    right: -3px;
-    width: 18px;
-    height: 18px;
+    top: calc(var(--bcc-badge-size) * -0.35);
+    right: calc(var(--bcc-badge-size) * -0.35);
+    width: var(--bcc-badge-size);
+    height: var(--bcc-badge-size);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -93,7 +123,7 @@ export default css`
   }
 
   .badge ha-icon {
-    --mdc-icon-size: 14px;
+    --mdc-icon-size: calc(var(--bcc-badge-size) * 0.78);
     color: var(--disabled-text-color, #9e9e9e);
   }
 
@@ -118,9 +148,5 @@ export default css`
   .error {
     color: var(--error-color, #db4437);
     font-size: 0.95rem;
-  }
-
-  ha-card.clickable {
-    cursor: pointer;
   }
 `

@@ -58,12 +58,24 @@ entity: sensor.waste_collection_schedule_my_council
 | `type` | string | — | `custom:wheelie-bin-card` |
 | `entity` | string | — | **Required.** The date-keyed Waste Collection Schedule sensor. |
 | `title` | string | `Next Bin Collection` | Card heading. |
+| `layout` | `horizontal` \| `vertical` | `horizontal` | `horizontal` = text left, chips right; `vertical` = stacked and centred. |
 | `bins` | list | *(built-in set)* | Override the bin list entirely — see below. |
 | `show_food_scraps` | boolean | `false` | Add a "Food scraps" chip to the built-in set (ignored when `bins` is given). |
 | `hide_inactive` | boolean | `false` | Only render chips that are part of the next collection. |
+| `show_badges` | boolean | `true` | Show the corner ✓ / ✗ badge on each chip. |
 | `show_labels` | boolean | `false` | Show each bin's label under its chip. |
+| `chip_size` | number \| string | `44` | Chip (circle) diameter — number is px. |
+| `icon_size` | number \| string | `24` | Bin icon size — number is px. |
+| `badge_size` | number \| string | *(scales with `chip_size`)* | ✓ / ✗ badge diameter — number is px. |
+| `chip_gap` | number \| string | `12` | Gap between chips — number is px. |
 | `locale` | string | *(HA locale)* | Locale for day names, e.g. `en-NZ`. |
 | `tap_action` | action | `more-info` | Standard HA action object. `{ action: none }` disables the click. |
+| `hold_action` | action | *(none)* | Standard HA action object. |
+| `double_tap_action` | action | *(none)* | Standard HA action object. |
+
+A visual editor is provided — entity, a **Content** section (title, layout, toggles,
+sizes, locale), an **Interactions** section (tap / hold / double-tap), and a
+**Bins** section with a per-bin icon and colour picker.
 
 ### Built-in bin set
 
@@ -105,7 +117,10 @@ bins:
 
 | Property | Default | Purpose |
 |---|---|---|
-| `--bcc-chip-size` | `46px` | Diameter of each bin chip. |
+| `--bcc-chip-size` | `44px` | Diameter of each bin chip (or use `chip_size`). |
+| `--bcc-icon-size` | `24px` | Bin icon size (or use `icon_size`). |
+| `--bcc-badge-size` | scales with chip | ✓ / ✗ badge size (or use `badge_size`). |
+| `--bcc-chip-gap` | `12px` | Gap between chips (or use `chip_gap`). |
 | `--bcc-chip-bg` | `rgba(150,150,150,0.16)` | Background of an inactive chip. |
 
 ## Notes

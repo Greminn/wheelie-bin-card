@@ -63,11 +63,25 @@ export interface WheelieBinCardConfig {
   show_food_scraps?: boolean
   /** only render chips that are part of the next collection */
   hide_inactive?: boolean
+  /** show the corner ✓ / ✗ badge on each chip — default true */
+  show_badges?: boolean
   /** show the label under each chip */
   show_labels?: boolean
+  /** chip diameter — number (px) or any CSS length. Default 44px. */
+  chip_size?: string | number
+  /** bin icon size — number (px) or any CSS length. Default 24px. */
+  icon_size?: string | number
+  /** corner tick / cross badge size — number (px) or any CSS length. Default scales with chip_size. */
+  badge_size?: string | number
+  /** gap between chips — number (px) or any CSS length. Default 12px. */
+  chip_gap?: string | number
+  /** "horizontal" (text left, chips right) or "vertical" (stacked, centred) */
+  layout?: 'horizontal' | 'vertical'
   /** locale for day names / formatting — defaults to the HA locale */
   locale?: string
   tap_action?: ActionConfig
+  hold_action?: ActionConfig
+  double_tap_action?: ActionConfig
 }
 
 export interface ResolvedBin extends BinDefinition {
