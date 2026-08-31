@@ -4,8 +4,7 @@
 
 > **Why "Bun"?** New Zealanders pronounce *bin* as *bun*. On collection day a
 > Kiwi wheels their buns down the driveway and nobody bats an eyelid. The card is
-> named accordingly. (The card *type* is still `custom:wheelie-bin-card` — the
-> joke doesn't need to break anyone's config.)
+> named accordingly.
 
 A small Home Assistant Lovelace card for the
 [**Waste Collection Schedule**](https://github.com/mampfes/hacs_waste_collection_schedule)
