@@ -4,6 +4,7 @@ import { classMap } from 'lit/directives/class-map.js'
 
 import styles from './styles'
 import { HomeAssistant, WheelieBinCardConfig, BinDefinition, ResolvedBin } from './types'
+import './editor'
 
 const CARD_VERSION = '0.1.0'
 
@@ -48,6 +49,10 @@ export class WheelieBinCard extends LitElement {
 
   @property({ attribute: false }) public hass!: HomeAssistant
   @state() private config!: WheelieBinCardConfig
+
+  public static getConfigElement (): HTMLElement {
+    return document.createElement('wheelie-bin-card-editor')
+  }
 
   public static getStubConfig (_hass: HomeAssistant, entities: string[]): Record<string, unknown> {
     const match = entities.find((e) => e.startsWith('sensor.') && /waste|rubbish|bin|collection/i.test(e))
