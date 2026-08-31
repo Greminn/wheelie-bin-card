@@ -38,6 +38,18 @@ const SCHEMA = [
         }
       },
       {
+        name: 'chip_style',
+        selector: {
+          select: {
+            mode: 'list',
+            options: [
+              { value: 'faded', label: 'Faded (colour icon on tinted disc)' },
+              { value: 'filled', label: 'Filled (white icon on colour disc)' }
+            ]
+          }
+        }
+      },
+      {
         name: '',
         type: 'grid',
         schema: [
@@ -79,6 +91,7 @@ const LABELS: Record<string, string> = {
   interactions: 'Interactions',
   title: 'Title',
   layout: 'Layout',
+  chip_style: 'Chip style',
   show_badges: 'Badges (✓ / ✗)',
   show_food_scraps: 'Food scraps chip',
   hide_inactive: 'Hide inactive bins',
@@ -174,8 +187,11 @@ export class WheelieBinCardEditor extends LitElement {
   }
 
   private emit (config: WheelieBinCardConfig): void {
+    const clean = { ...config }
+    // drop a stale nested key written by an earlier editor build
+    delete (clean as Record<string, unknown>).toggles
     this.dispatchEvent(new CustomEvent('config-changed', {
-      detail: { config },
+      detail: { config: clean },
       bubbles: true,
       composed: true
     }))

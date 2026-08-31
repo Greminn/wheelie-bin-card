@@ -77,6 +77,12 @@ export interface WheelieBinCardConfig {
   chip_gap?: string | number
   /** "horizontal" (text left, chips right) or "vertical" (stacked, centred) */
   layout?: 'horizontal' | 'vertical'
+  /**
+   * Active-chip appearance:
+   *  - "faded" (default): faint colour disc + full-colour icon (Mushroom "shape" look)
+   *  - "filled": solid colour disc + white icon
+   */
+  chip_style?: 'faded' | 'filled'
   /** locale for day names / formatting — defaults to the HA locale */
   locale?: string
   tap_action?: ActionConfig

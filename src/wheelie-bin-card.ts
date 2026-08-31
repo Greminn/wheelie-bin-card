@@ -8,7 +8,7 @@ import { ActionConfig, HomeAssistant, WheelieBinCardConfig, BinDefinition, Resol
 import { effectiveBins, KNOWN_COLORS } from './defaults'
 import './editor'
 
-const CARD_VERSION = '0.2.0'
+const CARD_VERSION = '0.3.0'
 
 console.info(
   `%c WHEELIE-BIN-CARD %c v${CARD_VERSION} `,
@@ -55,14 +55,27 @@ export class WheelieBinCard extends LitElement {
     this.config = config
   }
 
+  /** rough natural content height in px, for grid/masonry sizing */
+  private naturalHeight (): number {
+    const c = this.config ?? ({} as WheelieBinCardConfig)
+    const chip = Number(sizeNum(c.chip_size)) || 36
+    const labels = c.show_labels ? 16 : 0
+    const text = 34 // title + summary, tight
+    const pad = 16 // ha-card vertical padding
+    return c.layout === 'vertical'
+      ? pad + text + 10 + chip + labels
+      : pad + Math.max(text, chip + labels)
+  }
+
   public getCardSize (): number {
-    return 1
+    return Math.max(1, Math.round(this.naturalHeight() / 50))
   }
 
   public getGridOptions (): Record<string, unknown> {
-    // let the card grow with its content (esp. the vertical layout) instead of
-    // being pinned to a fixed row height and overflowing its background
-    return { rows: 'auto', min_rows: 1, columns: 12, min_columns: 6 }
+    // report the real height so the section grid gives the card a slot that
+    // fits — otherwise a default 1-row slot leaves content overflowing
+    const rows = Math.max(1, Math.ceil((this.naturalHeight() + 8) / 64))
+    return { rows, min_rows: 1, columns: 12, min_columns: 6 }
   }
 
   public disconnectedCallback (): void {
@@ -167,7 +180,7 @@ export class WheelieBinCard extends LitElement {
         @pointercancel=${interactive ? this._onPointerCancel : undefined}
         @click=${interactive ? this._onClick : undefined}
       >
-        <div class=${classMap({ wrap: true, vertical })}>
+        <div class=${classMap({ wrap: true, vertical, filled: this.config.chip_style === 'filled' })}>
           <div class="text">
             <div class="title">${title}</div>
             <div class="summary">${summary}</div>
@@ -181,12 +194,13 @@ export class WheelieBinCard extends LitElement {
   }
 
   private renderChip (bin: ResolvedBin): TemplateResult {
+    const accent = resolveColor(bin.color)
     return html`
       <div
         class=${classMap({ chip: true, active: bin.active })}
         data-bin=${bin.slug}
         title=${bin.label}
-        style=${`--bcc-accent: ${resolveColor(bin.color)};`}
+        style=${`--bcc-accent: ${accent}; --bcc-accent-faded: color-mix(in srgb, ${accent} 22%, transparent);`}
       >
         <div class="disc">
           <ha-icon .icon=${bin.icon}></ha-icon>
@@ -283,6 +297,13 @@ function sizePx (v?: string | number): string | undefined {
   if (v === undefined || v === null || v === '') return undefined
   const s = String(v).trim()
   return /^-?\d+(\.\d+)?$/.test(s) ? `${s}px` : s
+}
+
+/** numeric part of a size config value, or undefined if it isn't a plain number */
+function sizeNum (v?: string | number): number | undefined {
+  if (v === undefined || v === null || v === '') return undefined
+  const n = parseFloat(String(v))
+  return Number.isFinite(n) ? n : undefined
 }
 
 function resolveColor (color?: string): string {

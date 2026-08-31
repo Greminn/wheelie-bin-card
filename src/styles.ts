@@ -2,17 +2,19 @@ import { css } from 'lit'
 
 export default css`
   :host {
-    --bcc-chip-size: 44px;
-    --bcc-icon-size: 24px;
-    --bcc-chip-gap: 12px;
+    --bcc-chip-size: 36px;
+    --bcc-icon-size: 22px;
+    --bcc-chip-gap: 10px;
     --bcc-chip-bg: rgba(150, 150, 150, 0.16);
-    --bcc-badge-size: max(15px, calc(var(--bcc-chip-size) * 0.4));
+    --bcc-badge-size: max(14px, calc(var(--bcc-chip-size) * 0.42));
   }
 
   ha-card {
     display: block;
-    padding: 12px 16px;
+    padding: 8px 14px;
     box-sizing: border-box;
+    height: 100%;
+    overflow: hidden;
   }
 
   ha-card.clickable {
@@ -44,17 +46,17 @@ export default css`
   }
 
   .title {
-    font-size: 1.15rem;
+    font-size: 1.05rem;
     font-weight: 600;
-    line-height: 1.3;
+    line-height: 1.25;
     color: var(--primary-text-color);
   }
 
   .summary {
-    font-size: 0.95rem;
-    line-height: 1.3;
+    font-size: 0.9rem;
+    line-height: 1.25;
     color: var(--secondary-text-color);
-    margin-top: 2px;
+    margin-top: 1px;
   }
 
   .chips {
@@ -96,43 +98,49 @@ export default css`
   .disc ha-icon {
     --mdc-icon-size: var(--bcc-icon-size);
     color: var(--secondary-text-color);
-    opacity: 0.55;
+    opacity: 0.5;
   }
 
+  /* active — "faded" (default): faint colour disc, full-colour icon */
   .chip.active .disc {
-    background: var(--bcc-accent);
+    background: var(--bcc-accent-faded);
   }
 
   .chip.active .disc ha-icon {
-    color: #fff;
+    color: var(--bcc-accent);
     opacity: 1;
+  }
+
+  /* active — "filled": solid colour disc, white icon */
+  .wrap.filled .chip.active .disc {
+    background: var(--bcc-accent);
+  }
+
+  .wrap.filled .chip.active .disc ha-icon {
+    color: #fff;
   }
 
   .badge {
     position: absolute;
-    top: calc(var(--bcc-badge-size) * -0.35);
-    right: calc(var(--bcc-badge-size) * -0.35);
+    top: calc(var(--bcc-badge-size) * -0.32);
+    right: calc(var(--bcc-badge-size) * -0.32);
     width: var(--bcc-badge-size);
     height: var(--bcc-badge-size);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--card-background-color, #1c1c1c);
-    box-shadow: 0 0 0 2px var(--card-background-color, #1c1c1c);
+    background: var(--bcc-badge-inactive, rgba(120, 120, 120, 0.95));
   }
 
   .badge ha-icon {
-    --mdc-icon-size: calc(var(--bcc-badge-size) * 0.78);
-    color: var(--disabled-text-color, #9e9e9e);
+    --mdc-icon-size: calc(var(--bcc-badge-size) * 0.84);
+    color: #fff;
+    filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.35));
   }
 
   .chip.active .badge {
     background: var(--bcc-accent);
-  }
-
-  .chip.active .badge ha-icon {
-    color: #fff;
   }
 
   .label {
