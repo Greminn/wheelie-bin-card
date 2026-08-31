@@ -1,6 +1,9 @@
-# Wheelie Bin Card
+# Wheelie Bun (Bin) Card
 
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
+
+> New Zealanders say *bin* to rhyme with *bun* — hence the name. The card type
+> is still `custom:wheelie-bin-card`.
 
 A small Home Assistant Lovelace card for the
 [**Waste Collection Schedule**](https://github.com/mampfes/hacs_waste_collection_schedule)

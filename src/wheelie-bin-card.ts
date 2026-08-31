@@ -8,7 +8,7 @@ import { ActionConfig, HomeAssistant, WheelieBinCardConfig, BinDefinition, Resol
 import { effectiveBins, KNOWN_COLORS } from './defaults'
 import './editor'
 
-const CARD_VERSION = '0.3.1'
+const CARD_VERSION = '0.3.2'
 
 console.info(
   `%c WHEELIE-BIN-CARD %c v${CARD_VERSION} `,
@@ -20,7 +20,7 @@ const w = window as any
 w.customCards = w.customCards || []
 w.customCards.push({
   type: 'wheelie-bin-card',
-  name: 'Wheelie Bin Card',
+  name: 'Wheelie Bun (Bin) Card',
   description: 'Next collection from the Waste Collection Schedule integration, with a check / cross per bin.',
   preview: false,
   documentationURL: 'https://github.com/Greminn/wheelie-bin-card'
