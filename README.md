@@ -61,6 +61,23 @@ waste_collection_schedule:
 
 Then point the card at `sensor.waste_collection_schedule`.
 
+### Already got one sensor per waste type?
+
+If your setup made `sensor.waste_collection_schedule_rubbish`,
+`…_recycling`, `…_food_scraps` and so on (each still needs `details_format:
+upcoming`), skip the combined sensor and hand the card the lot:
+
+```yaml
+type: custom:wheelie-bin-card
+entity:
+  - sensor.waste_collection_schedule_rubbish
+  - sensor.waste_collection_schedule_recycling
+  - sensor.waste_collection_schedule_food_scraps
+```
+
+The card merges their dates and works out the next collection from the pile. The
+editor's sensor picker takes multiple too.
+
 ## Getting it installed
 
 ### HACS (custom repository)
@@ -94,7 +111,7 @@ Everything below is optional tinkering.
 | Name | Type | Default | Description |
 |---|---|---|---|
 | `type` | string | — | `custom:wheelie-bin-card` |
-| `entity` | string | — | **Required.** The date-keyed Waste Collection Schedule sensor. |
+| `entity` | string \| list | — | **Required.** The date-keyed Waste Collection Schedule sensor — or a list of them, merged by date (handy if you've got one sensor per waste type). |
 | `title` | string | `Next Bin Collection` | Card heading. |
 | `layout` | `horizontal` \| `vertical` | `horizontal` | `horizontal` = text left, chips right; `vertical` = stacked and centred. |
 | `chip_style` | `faded` \| `filled` | `faded` | `faded` = colour icon on a tinted disc; `filled` = white icon on a solid colour disc. |

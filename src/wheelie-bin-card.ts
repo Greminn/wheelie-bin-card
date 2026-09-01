@@ -8,7 +8,7 @@ import { ActionConfig, HomeAssistant, WheelieBinCardConfig, BinDefinition, Resol
 import { effectiveBins, KNOWN_COLORS, TE_REO_WEEKDAYS } from './defaults'
 import './editor'
 
-const CARD_VERSION = '0.4.0'
+const CARD_VERSION = '0.4.1'
 
 console.info(
   `%c WHEELIE-BIN-CARD %c v${CARD_VERSION} `,
@@ -49,10 +49,20 @@ export class WheelieBinCard extends LitElement {
   }
 
   public setConfig (config: WheelieBinCardConfig): void {
-    if (!config || !config.entity) {
-      throw new Error('wheelie-bin-card: "entity" is required')
+    const entity = config?.entity
+    const ok = typeof entity === 'string'
+      ? entity.length > 0
+      : Array.isArray(entity) && entity.length > 0 && entity.every((e) => typeof e === 'string' && e)
+    if (!ok) {
+      throw new Error('wheelie-bin-card: "entity" is required (a sensor id, or a list of them)')
     }
     this.config = config
+  }
+
+  /** configured entity id(s), always as a list */
+  private entityIds (): string[] {
+    const e = this.config.entity
+    return Array.isArray(e) ? e : [e]
   }
 
   /** rough natural content height in px, for grid/masonry sizing */
@@ -89,26 +99,41 @@ export class WheelieBinCard extends LitElement {
     if (changed.has('config')) return true
     const oldHass = changed.get('hass') as HomeAssistant | undefined
     if (!oldHass) return true
-    return oldHass.states[this.config.entity] !== this.hass.states[this.config.entity] ||
-      oldHass.locale?.language !== this.hass.locale?.language
+    if (oldHass.locale?.language !== this.hass.locale?.language) return true
+    return this.entityIds().some((id) => oldHass.states[id] !== this.hass.states[id])
   }
 
   private get bins (): BinDefinition[] {
     return effectiveBins(this.config)
   }
 
+  /** date-keyed attributes merged across every configured sensor */
+  private collectionsByDate (): Map<string, string> {
+    const merged = new Map<string, string>()
+    for (const id of this.entityIds()) {
+      const attrs = this.hass.states[id]?.attributes
+      if (!attrs) continue
+      for (const key of Object.keys(attrs)) {
+        if (!DATE_KEY.test(key)) continue
+        const raw = attrs[key]
+        const text = Array.isArray(raw) ? raw.join(', ') : String(raw ?? '')
+        if (!text) continue
+        const prev = merged.get(key)
+        merged.set(key, prev ? `${prev}, ${text}` : text)
+      }
+    }
+    return merged
+  }
+
   /** the earliest date-keyed attribute that is today or later (else the earliest of all) */
   private nextCollection (): { date: Date, text: string } | undefined {
-    const stateObj = this.hass.states[this.config.entity]
-    if (!stateObj) return undefined
-    const keys = Object.keys(stateObj.attributes).filter((k) => DATE_KEY.test(k)).sort()
-    if (!keys.length) return undefined
+    const byDate = this.collectionsByDate()
+    if (!byDate.size) return undefined
+    const keys = [...byDate.keys()].sort()
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     const key = keys.find((k) => new Date(`${k}T00:00:00`) >= today) ?? keys[0]
-    const raw = stateObj.attributes[key]
-    const text = Array.isArray(raw) ? raw.join(', ') : String(raw ?? '')
-    return { date: new Date(`${key}T00:00:00`), text }
+    return { date: new Date(`${key}T00:00:00`), text: byDate.get(key) ?? '' }
   }
 
   private resolveBins (text: string): ResolvedBin[] {
@@ -153,7 +178,8 @@ export class WheelieBinCard extends LitElement {
 
   protected render (): TemplateResult {
     if (!this.config || !this.hass) return html``
-    const stateObj = this.hass.states[this.config.entity]
+    const ids = this.entityIds()
+    const missing = ids.filter((id) => !this.hass.states[id])
     const title = this.config.title ?? 'Next Bin Collection'
     const vertical = this.config.layout === 'vertical'
     const interactive = this.config.tap_action?.action !== 'none'
@@ -165,8 +191,8 @@ export class WheelieBinCard extends LitElement {
       '--bcc-chip-gap': sizePx(this.config.chip_gap)
     })
 
-    if (!stateObj) {
-      return html`<ha-card style=${cardStyle}><div class="error">Entity not found: ${this.config.entity}</div></ha-card>`
+    if (missing.length === ids.length) {
+      return html`<ha-card style=${cardStyle}><div class="error">Entity not found: ${missing.join(', ')}</div></ha-card>`
     }
 
     const next = this.nextCollection()
@@ -264,7 +290,7 @@ export class WheelieBinCard extends LitElement {
     if (!a || a.action === 'none') return
     switch (a.action) {
       case 'toggle':
-        this.hass.callService('homeassistant', 'toggle', { entity_id: this.config.entity })
+        this.hass.callService('homeassistant', 'toggle', { entity_id: this.entityIds() })
         return
       case 'navigate':
         if (a.navigation_path) {
@@ -286,7 +312,7 @@ export class WheelieBinCard extends LitElement {
       case 'more-info':
       default:
         this.dispatchEvent(new CustomEvent('hass-more-info', {
-          detail: { entityId: this.config.entity },
+          detail: { entityId: this.entityIds()[0] },
           bubbles: true,
           composed: true
         }))

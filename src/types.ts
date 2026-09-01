@@ -53,8 +53,12 @@ export interface BinDefinition {
 
 export interface WheelieBinCardConfig {
   type: string
-  /** the Waste Collection Schedule "detailed" sensor (date-keyed attributes) */
-  entity: string
+  /**
+   * The Waste Collection Schedule sensor(s) with date-keyed attributes
+   * (`details_format: upcoming`). A list is merged by date — handy when the
+   * integration produced one sensor per waste type.
+   */
+  entity: string | string[]
   /** card heading — default "Next Bin Collection" */
   title?: string
   /** override the whole bin list; when omitted a sensible default set is used */

@@ -2,6 +2,18 @@
 
 All notable changes to the Wheelie Bun (Bin) Card. Chur.
 
+## 0.4.1
+
+- **`entity` now takes a list** — `entity: [sensor.rubbish, sensor.recycling, …]`.
+  Date-keyed attributes are merged across every sensor before working out the
+  next collection, so the card works with a Waste Collection Schedule setup that
+  produced one sensor per waste type (common with the GUI config flow) instead
+  of demanding a single combined sensor. The editor's sensor picker now takes
+  multiple. ([#1](https://github.com/Greminn/wheelie-bin-card/issues/1))
+- A missing sensor in a list no longer blanks the card — it renders from
+  whichever ones are available.
+- Docs: a proper walkthrough for adding a `details_format: upcoming` sensor.
+
 ## 0.4.0
 
 The "sort your bins out" release.

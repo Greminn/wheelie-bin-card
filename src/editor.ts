@@ -55,7 +55,7 @@ const chipThumbFilled = svgThumb(
 )
 
 const SCHEMA = [
-  { name: 'entity', required: true, selector: { entity: { domain: 'sensor' } } },
+  { name: 'entity', required: true, selector: { entity: { domain: 'sensor', multiple: true } } },
   {
     name: 'content',
     type: 'expandable',
@@ -136,7 +136,7 @@ const SCHEMA = [
 ] as const
 
 const LABELS: Record<string, string> = {
-  entity: 'Waste Collection Schedule sensor',
+  entity: 'Waste Collection Schedule sensor(s)',
   content: 'Content',
   interactions: 'Interactions',
   title: 'Title',
@@ -213,10 +213,18 @@ export class WheelieBinCardEditor extends LitElement {
 
   protected render (): TemplateResult | typeof nothing {
     if (!this.hass || !this.config) return nothing
+    const entity = this.config.entity
+    const data = {
+      show_badges: true,
+      labels: 'english',
+      ...this.config,
+      // the entity selector is `multiple` — it wants an array
+      entity: Array.isArray(entity) ? entity : entity ? [entity] : []
+    }
     return html`
       <ha-form
         .hass=${this.hass}
-        .data=${{ show_badges: true, labels: 'english', ...this.config }}
+        .data=${data}
         .schema=${SCHEMA}
         .computeLabel=${this.computeLabel}
         @value-changed=${this.formChanged}
@@ -356,6 +364,8 @@ export class WheelieBinCardEditor extends LitElement {
     delete (clean as Record<string, unknown>).toggles
     // 'english' is the default — no need to persist it
     if (clean.labels === 'english') delete clean.labels
+    // keep a single sensor as a plain string
+    if (Array.isArray(clean.entity) && clean.entity.length === 1) clean.entity = clean.entity[0]
     this.dispatchEvent(new CustomEvent('config-changed', {
       detail: { config: clean },
       bubbles: true,
