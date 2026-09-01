@@ -19,19 +19,47 @@ tonight's the night or whether you can leave the buns where they are.
 
 ## What you'll need
 
-The `entity` has to be a **Waste Collection Schedule sensor whose attributes are
-keyed by date**, each value being the collection type(s) for that day, e.g.:
+1. The [Waste Collection Schedule](https://github.com/mampfes/hacs_waste_collection_schedule)
+   integration, with a **source** set up for your council.
+2. A **sensor** on that source using `details_format: upcoming`. That's the one
+   whose attributes are keyed by date:
+
+   ```yaml
+   # sensor.waste_collection_schedule attributes
+   2026-09-04: "Rubbish, Food scraps, Garden waste"
+   2026-09-11: "Recycling, Food scraps, Glass"
+   daysTo: 3
+   ```
+
+The card reads the earliest of those dates that's today or later. A *calendar*
+entity on its own won't cut it, and neither will the `appointment_types` /
+`generic` sensor formats — no date-keyed attributes, no dice.
+
+### Adding the sensor
+
+This is the step most people miss — the config flow happily leaves you with just
+a calendar, or a sensor in the wrong format.
+
+**GUI:** Settings → Devices & Services → **Waste Collection Schedule** →
+**Configure** → add a sensor → set **Details format** to **Upcoming** and
+**Count** to something generous like `10`.
+
+**YAML:**
 
 ```yaml
-# sensor.waste_collection_schedule_… attributes
-2026-09-04: "Rubbish, Food scraps, Garden waste"
-2026-09-11: "Recycling, Food scraps, Glass"
+waste_collection_schedule:
+  sources:
+    - name: your_council_source
+      args:
+        # …council-specific args…
+  sensors:
+    - name: waste_collection_schedule
+      details_format: upcoming   # the default — this is what emits the per-date attributes
+      count: 10                  # how many upcoming pickups to list
+      # leadtime: 60             # …or cap by number of days instead
 ```
 
-That's the shape a Waste Collection Schedule `sensor` puts out when it's set up
-with `value_template` / details that emit per-date attributes (the common
-"detailed upcoming" setup). The card reads the earliest date that's today or
-later. No date-keyed attributes, no dice.
+Then point the card at `sensor.waste_collection_schedule`.
 
 ## Getting it installed
 
@@ -194,6 +222,10 @@ For when you want to get amongst the styling:
 Not affiliated with the Waste Collection Schedule project — it just reads that
 integration's sensor. If the card's wrong about your collection day, check the
 sensor first; the card only reports what it's told.
+
+**"No upcoming collection data"** on the card means the sensor has no date-keyed
+attributes — you're on the wrong sensor, or it needs `details_format: upcoming`.
+See [Adding the sensor](#adding-the-sensor).
 
 See [CHANGELOG.md](CHANGELOG.md) for what's changed.
 
