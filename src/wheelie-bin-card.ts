@@ -5,10 +5,10 @@ import { styleMap } from 'lit/directives/style-map.js'
 
 import styles from './styles'
 import { ActionConfig, HomeAssistant, WheelieBinCardConfig, BinDefinition, ResolvedBin } from './types'
-import { effectiveBins, KNOWN_COLORS } from './defaults'
+import { effectiveBins, KNOWN_COLORS, TE_REO_WEEKDAYS } from './defaults'
 import './editor'
 
-const CARD_VERSION = '0.3.2'
+const CARD_VERSION = '0.4.0'
 
 console.info(
   `%c WHEELIE-BIN-CARD %c v${CARD_VERSION} `,
@@ -127,12 +127,17 @@ export class WheelieBinCard extends LitElement {
     today.setHours(0, 0, 0, 0)
     const diff = Math.round((date.getTime() - today.getTime()) / 86400000)
     const locale = this.config.locale ?? this.hass.locale?.language ?? 'en-GB'
+    const teReo = this.config.labels === 'te-reo'
     if (diff <= 0) return 'today'
     if (diff === 1) return 'tomorrow'
-    const weekday = date.toLocaleDateString(locale, { weekday: 'long' })
+    const weekday = teReo
+      ? TE_REO_WEEKDAYS[date.getDay()]
+      : date.toLocaleDateString(locale, { weekday: 'long' })
     if (diff < 7) return `this ${weekday}`
     if (diff < 14) return `next ${weekday}`
-    return `on ${date.toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' })}`
+    return teReo
+      ? `on ${weekday} ${date.getDate()} ${date.toLocaleDateString(locale, { month: 'short' })}`
+      : `on ${date.toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' })}`
   }
 
   private summaryLine (bins: ResolvedBin[], date: Date): string {

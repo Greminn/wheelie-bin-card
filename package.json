@@ -1,6 +1,6 @@
 {
   "name": "wheelie-bin-card",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "description": "Wheelie Bun (Bin) Card — Home Assistant Lovelace card for the Waste Collection Schedule integration, next collection at a glance with a check/cross per bin",
   "keywords": [
     "home-assistant",

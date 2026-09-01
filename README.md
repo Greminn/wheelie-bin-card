@@ -4,21 +4,22 @@
 
 > **Why "Bun"?** New Zealanders pronounce *bin* as *bun*. On collection day a
 > Kiwi wheels their buns down the driveway and nobody bats an eyelid. The card is
-> named accordingly.
+> named accordingly. She'll be right.
 
 A small Home Assistant Lovelace card for the
 [**Waste Collection Schedule**](https://github.com/mampfes/hacs_waste_collection_schedule)
-integration (`mampfes/hacs_waste_collection_schedule`). It shows the next collection
-as a title + summary line and a row of bin "chips", each with a ✓ or ✗ badge for
-whether that bin goes out next time.
+integration (`mampfes/hacs_waste_collection_schedule`). It shows the next
+collection as a title + summary line and a row of bin "chips", each with a ✓ or ✗
+badge for whether that bin's going out this time — so you know at a glance whether
+tonight's the night or whether you can leave the buns where they are.
 
 ![Wheelie Bun (Bin) Card — horizontal and vertical layouts](assets/screenshot.png)
 
 *Horizontal (default) and vertical layouts, `chip_style: faded`.*
 
-## Requirements
+## What you'll need
 
-The `entity` must be a **Waste Collection Schedule sensor whose attributes are
+The `entity` has to be a **Waste Collection Schedule sensor whose attributes are
 keyed by date**, each value being the collection type(s) for that day, e.g.:
 
 ```yaml
@@ -27,34 +28,38 @@ keyed by date**, each value being the collection type(s) for that day, e.g.:
 2026-09-11: "Recycling, Food scraps, Glass"
 ```
 
-That is the shape produced by a Waste Collection Schedule `sensor` configured
+That's the shape a Waste Collection Schedule `sensor` puts out when it's set up
 with `value_template` / details that emit per-date attributes (the common
-"detailed upcoming" setup). The card reads the earliest date that is today or
-later.
+"detailed upcoming" setup). The card reads the earliest date that's today or
+later. No date-keyed attributes, no dice.
 
-## Installation
+## Getting it installed
 
 ### HACS (custom repository)
 
 1. HACS → ⋮ → **Custom repositories** → add
    `https://github.com/Greminn/wheelie-bin-card`, category **Dashboard**.
 2. Install **Wheelie Bun (Bin) Card**.
-3. HACS adds the resource automatically. If not, add it manually:
+3. HACS adds the resource for you. If it doesn't, add it by hand:
    `/hacsfiles/wheelie-bin-card/wheelie-bin-card.js` (type: `module`).
 
-### Manual
+### Manual (for the DIY crowd)
 
-1. Download `wheelie-bin-card.js` from the
+1. Grab `wheelie-bin-card.js` from the
    [latest release](https://github.com/Greminn/wheelie-bin-card/releases/latest)
-   into `config/www/`.
+   and drop it in `config/www/`.
 2. Add a Lovelace resource: `/local/wheelie-bin-card.js` (type: `module`).
 
-## Configuration
+## Setting it up
+
+The whole config, if you're not fussy:
 
 ```yaml
 type: custom:wheelie-bin-card
 entity: sensor.waste_collection_schedule_my_council
 ```
+
+Everything below is optional tinkering.
 
 ### Options
 
@@ -65,27 +70,42 @@ entity: sensor.waste_collection_schedule_my_council
 | `title` | string | `Next Bin Collection` | Card heading. |
 | `layout` | `horizontal` \| `vertical` | `horizontal` | `horizontal` = text left, chips right; `vertical` = stacked and centred. |
 | `chip_style` | `faded` \| `filled` | `faded` | `faded` = colour icon on a tinted disc; `filled` = white icon on a solid colour disc. |
-| `bins` | list | *(built-in set)* | Override the bin list entirely — see below. |
-| `show_food_scraps` | boolean | `false` | Add a "Food scraps" chip to the built-in set (ignored when `bins` is given). |
-| `hide_inactive` | boolean | `false` | Only render chips that are part of the next collection. |
+| `labels` | `english` \| `te-reo` \| `kiwi` | `english` | Language for the built-in bin names — [see below](#bin-names--english-te-reo-or-full-kiwi). Matching stays English. Ignored when `bins` is given. |
+| `bins` | list | *(built-in set)* | Override the bin list entirely — [see below](#rolling-your-own-bins). |
+| `show_food_scraps` | boolean | `false` | Add a "Food scraps" chip to the built-in set (or just flick it on in the editor). Ignored when `bins` is given. |
+| `disabled_bins` | list of slugs | *(none)* | Bins to leave out — e.g. `["glass"]` where there's no glass collection. Works on the built-in set and on a custom `bins` list. |
+| `hide_inactive` | boolean | `false` | Only show chips that are part of the next collection. |
 | `show_badges` | boolean | `true` | Show the corner ✓ / ✗ badge on each chip. |
-| `show_labels` | boolean | `false` | Show each bin's label under its chip. |
-| `chip_size` | number \| string | `36` | Chip (circle) diameter — number is px. |
-| `icon_size` | number \| string | `22` | Bin icon size — number is px. |
-| `badge_size` | number \| string | *(scales with `chip_size`)* | ✓ / ✗ badge diameter — number is px. |
-| `chip_gap` | number \| string | `10` | Gap between chips — number is px. |
+| `show_labels` | boolean | `false` | Show each bin's name under its chip. |
+| `chip_size` | number \| string | `36` | Chip (circle) diameter — a bare number is px. |
+| `icon_size` | number \| string | `22` | Bin icon size — a bare number is px. |
+| `badge_size` | number \| string | *(scales with `chip_size`)* | ✓ / ✗ badge diameter — a bare number is px. |
+| `chip_gap` | number \| string | `10` | Gap between chips — a bare number is px. |
 | `locale` | string | *(HA locale)* | Locale for day names, e.g. `en-NZ`. |
 | `tap_action` | action | `more-info` | Standard HA action object. `{ action: none }` disables the click. |
 | `hold_action` | action | *(none)* | Standard HA action object. |
 | `double_tap_action` | action | *(none)* | Standard HA action object. |
 
-A visual editor is provided — entity, a **Content** section (title, layout, toggles,
-sizes, locale), an **Interactions** section (tap / hold / double-tap), and a
-**Bins** section with a per-bin icon and colour picker.
+### The visual editor
+
+No need to hand-write YAML like it's 2019. The editor has:
+
+- **Content** — title, **Layout** and **Chip style** as pick-a-picture cards,
+  **Bin names** (English / te reo / Kiwi), the show/hide toggles, sizes, locale.
+- **Interactions** — tap / hold / double-tap actions.
+- **Bins** — one row per bin, where you can:
+  - **flick it on or off** — turn Glass off and it's gone (most of Aotearoa has
+    no glass bin these days);
+  - **drag it by the handle to reorder** — the chips come out in whatever order
+    you leave the list;
+  - **open the row** to change its icon and colour.
+
+Reorder a bin or change an icon/colour and the editor writes an explicit `bins`
+list into your config. **Reset bins to defaults** puts it all back.
 
 ### Built-in bin set
 
-Used when `bins` is not supplied:
+Used when you don't supply `bins`:
 
 | slug | label | icon | colour | matches when the collection text contains |
 |---|---|---|---|---|
@@ -94,10 +114,47 @@ Used when `bins` is not supplied:
 | `recycling` | Recycling | `mdi:recycle` | amber | "Recycling" |
 | `glass` | Glass | `mdi:bottle-wine` | blue | "Glass" |
 
-With `show_food_scraps: true` a `food` / "Food scraps" / `mdi:food-apple` / light-green
-chip is appended.
+With `show_food_scraps: true` a `food` / "Food scraps" / `mdi:food-apple` /
+light-green chip is tacked on the end.
 
-### Custom bins
+### Bin names — English, te reo, or full Kiwi
+
+`labels` swaps the built-in names. Matching always uses the English term (the
+sensor speaks English), so this is completely safe to change.
+
+| slug | `english` | `te-reo` | `kiwi` |
+|---|---|---|---|
+| `rubbish` | Rubbish | Para | Garbage |
+| `garden` | Garden waste | Tapahanga māra | Garden guff |
+| `recycling` | Recycling | Hangarua | Cans and cardboard |
+| `glass` | Glass | Karaehe | Empties |
+| `food` | Food scraps | Para kai | Chook bucket |
+
+**`te-reo`** also swaps the weekday in the summary line — Rāhina, Rātū, Rāapa,
+Rāpare, Rāmere, Rāhoroi, Rātapu. The connecting words ("this", "next", "today")
+stay English; we'd rather leave the grammar to the experts than mangle it, so
+you'll get *"Hangarua & Karaehe this Rāpare"*. Te reo terms follow
+[WasteMINZ](https://www.wasteminz.org.nz/our-work/hot-topics/recycling-labels-information)'s
+national recycling labels — your local iwi may say it differently.
+
+**`kiwi`** is for when "recycling" feels a bit corporate. Purely cosmetic.
+
+Want your own words? Use `bins` with a custom `label` and an English `match`.
+
+### Dropping bins you don't have
+
+Auckland (and most of the country) binned the glass bin. Get rid of it:
+
+```yaml
+type: custom:wheelie-bin-card
+entity: sensor.waste_collection_schedule_my_council
+disabled_bins: ["glass"]
+```
+
+Or just flick the switch in the editor. Works whether you're on the built-in set
+or a custom `bins` list.
+
+### Rolling your own bins
 
 ```yaml
 type: custom:wheelie-bin-card
@@ -116,10 +173,12 @@ bins:
     match: Garden          # defaults to the label if omitted
 ```
 
-`color` accepts any CSS colour or a Home Assistant colour token name
+`color` takes any CSS colour or a Home Assistant colour token name
 (`red`, `green`, `blue`, `amber`, `teal`, …).
 
 ### CSS custom properties
+
+For when you want to get amongst the styling:
 
 | Property | Default | Purpose |
 |---|---|---|
@@ -132,8 +191,11 @@ bins:
 
 ## Notes
 
-Not affiliated with the Waste Collection Schedule project — it just consumes that
-integration's sensor.
+Not affiliated with the Waste Collection Schedule project — it just reads that
+integration's sensor. If the card's wrong about your collection day, check the
+sensor first; the card only reports what it's told.
+
+See [CHANGELOG.md](CHANGELOG.md) for what's changed.
 
 ## License
 

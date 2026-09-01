@@ -61,6 +61,17 @@ export interface WheelieBinCardConfig {
   bins?: BinDefinition[]
   /** add a "Food scraps" chip to the default set (ignored if `bins` is set) */
   show_food_scraps?: boolean
+  /**
+   * Language for the built-in bin names (and, for `te-reo`, the weekday names in
+   * the summary line). Matching always uses the English term. Ignored when `bins`
+   * is set. Default `english`.
+   */
+  labels?: 'english' | 'te-reo' | 'kiwi'
+  /**
+   * Slugs of bins to drop from the set — e.g. `["glass"]` where there is no
+   * glass collection. Applies to the built-in set and to a custom `bins` list.
+   */
+  disabled_bins?: string[]
   /** only render chips that are part of the next collection */
   hide_inactive?: boolean
   /** show the corner ✓ / ✗ badge on each chip — default true */
